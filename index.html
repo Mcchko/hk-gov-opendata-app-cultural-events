@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>「文化節目」查詢系統</title>
+    <!-- Awesome Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <style>
+        .element-hidden {
+            display: none !important;
+        }
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            min-height: 100vh;
+            padding: 16px;
+            color: #1f2937;
+        }
+        /* Layout */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 100vh;
+        }
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .header h1 {
+            color: #111827;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.5;
+            text-align: start;
+        }
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        /* Data Section */
+        .data-section {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            max-height: 75vh;
+            width: 100%;
+        }
+        /* Data Section Styles */
+        .data-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .data-header h2 {
+            color: #111827;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .data-header .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .data-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #D2691E;
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        .accordion-container {
+            margin-top: 20px;
+        }
+        .dataset-group {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .dataset-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .dataset-header {
+            background: linear-gradient(135deg, #D2691E 0%, #8B4513 100%);
+            color: white;
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .dataset-header.active {
+            background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+        }
+        .dataset-header i {
+            transition: transform 0.3s ease;
+        }
+        .dataset-header.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .dataset-content {
+            padding: 20px;
+            background: white;
+        }
+        .sub-dataset-group {
+            background: #f0f4f8;
+            border: 1px solid #d1d9e6;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .sub-dataset-header {
+            background: linear-gradient(135deg, #A0522D 0%, #CD853F 100%);
+            color: white;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+        .sub-dataset-content {
+            padding: 15px;
+            background: #fafafa;
+        }
+        .sub-sub-dataset-group {
+            background: #e8f0f8;
+            border: 1px solid #c8d6e5;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .sub-sub-dataset-header {
+            background: linear-gradient(135deg, #CD853F 0%, #DEB887 100%);
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .property-list {
+            display: grid;
+            gap: 12px;
+            padding: 10px;
+        }
+        .property-item {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.2s ease;
+        }
+        .property-item:hover {
+            background: #f1f5f9;
+            border-color: #D2691E;
+        }
+        .property-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .property-row {
+            display: flex;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .property-label {
+            font-weight: 600;
+            color: #374151;
+            width: 120px;
+            flex-shrink: 0;
+        }
+        .property-value {
+            flex: 1;
+            color: #6b7280;
+            word-break: break-word;
+        }
+        .property-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .badge-venue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .badge-cat1 {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-cat2 {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .badge-event {
+            background: #f3e8ff;
+            color: #5b21b6;
+        }
+        .badge-date {
+            background: #fce7f3;
+            color: #9d174d;
+        }
+        .property-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #D2691E;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        /* Filter Section */
+        .filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .filter-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-item label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+        .filter-item select,
+        .filter-item input {
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .filter-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.apply {
+            background: linear-gradient(135deg, #D2691E 0%, #8B4513 100%);
+            color: white;
+        }
+        .filter-btn.reset {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        .filter-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.875rem;
+            padding: 20px;
+            margin-top: auto;
+        }
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease-out;
+        }
+        .notification.success {
+            background-color: #10b981;
+            color: white;
+        }
+        .notification.error {
+            background-color: #ef4444;
+            color: white;
+        }
+        .notification.info {
+            background-color: #D2691E;
+            color: white;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+                background: #8B4513;
+            }
+            .container {
+                gap: 16px;
+            }
+            .header {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .main-content {
+                flex-direction: column;
+            }
+            .data-section {
+                max-height: 500px;
+                padding: 15px;
+            }
+            .data-header h2 {
+                font-size: 1.3rem;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .property-info {
+                grid-template-columns: 1fr;
+            }
+            .property-row {
+                flex-direction: column;
+                margin-bottom: 12px;
+            }
+            .property-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .dataset-header {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+            .sub-dataset-header {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            .sub-sub-dataset-header {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+            .filter-group {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Desktop Enhancements */
+        @media (min-width: 1200px) {
+            .data-section {
+                max-height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>「文化節目」查詢系統</h1>
+            <p class="subtitle">香港文化活動資料查詢系統，支援各類文化節目資料查詢</p>
+        </header>
+        
+        <div class="filter-section">
+            <div class="filter-group">
+                <div class="filter-item">
+                    <label for="filter-venue">節目場地</label>
+                    <select id="filter-venue">
+                        <option value="">全部場地</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="filter-category1">主要類別</label>
+                    <select id="filter-category1">
+                        <option value="">全部類別</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="filter-category2">次要類別</label>
+                    <select id="filter-category2">
+                        <option value="">全部類別</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label for="filter-search">關鍵字搜尋</label>
+                    <input type="text" id="filter-search" placeholder="搜尋節目名稱或日期..." />
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="filter-btn reset" onclick="resetFilters()">
+                    <i class="fas fa-redo"></i> 重設篩選
+                </button>
+                <button class="filter-btn apply" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> 搜尋節目
+                </button>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <section class="data-section">
+                <div class="data-header">
+                    <h2>文化節目資料列表</h2>
+                    <p class="subtitle">按場地 > 主要類別 > 次要類別查看節目詳細資訊</p>
+                </div>
+                <div class="data-stats">
+                    <div class="stat-item">
+                        <span id="total-events" class="stat-value">0</span>
+                        <span class="stat-label">節目總數</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-venues" class="stat-value">0</span>
+                        <span class="stat-label">場地數量</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-categories1" class="stat-value">0</span>
+                        <span class="stat-label">主要類別</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-categories2" class="stat-value">0</span>
+                        <span class="stat-label">次要類別</span>
+                    </div>
+                </div>
+                <div class="accordion-container" id="accordion-container">
+                    <div class="no-data">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>正在載入文化節目資料...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="footer">
+            <p>「文化節目」查詢系統<br/>資料來源: 香港康樂及文化事務署<span id="last-updated" hidden></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // 資料來源設定
+        const DATA_SOURCES = {
+            events: "https://www.lcsd.gov.hk/datagovhk/event/events.xml",
+            venues: "https://www.lcsd.gov.hk/datagovhk/event/venues.xml"
+        };
+
+        // CORS Proxy (如果需要)
+        const PROXY_URL = `https://cors-anywhere.herokuapp.com`;
+
+        // 類別對照表
+        const CATEGORY_MAPPING = {
+            // cat1 對照表
+            cat1: {
+                'INC1': '康樂及體育活動',
+                'INC3': '社區綠化活動',
+                'INC4': '表演藝術及電影',
+                'INC6': '文物及博物館活動',
+                'INC7': '香港公共圖書館推廣活動',
+                'INC9': '全港性節慶及免費文娛節目'
+            },
+            // cat2 對照表
+            cat2: {
+                'INC1SC1': '社區康樂體育活動',
+                'INC1SC2': '體育推廣及大型活動',
+                'INC1SC3': '其他',
+                'INC4SC1': '音樂',
+                'INC4SC10': '藝術節',
+                'INC4SC11': '合家歡節目',
+                'INC4SC12': '綜合表演',
+                'INC4SC13': '觀眾拓展活動',
+                'INC4SC14': '工作坊/課程',
+                'INC4SC2': '中國戲曲',
+                'INC4SC3': '舞蹈',
+                'INC4SC4': '展覽',
+                'INC4SC5': '電影',
+                'INC4SC6': '戲劇',
+                'INC4SC7': '跨媒體藝術',
+                'INC4SC8': '其他',
+                'INC4SC9': '流行音樂會',
+                'INC6SC1': '展覽',
+                'INC6SC2': '教育及推廣活動',
+                'INC6SC3': '全天域電影',
+                'INC6SC4': '天象節目',
+                'INC6SC5': '其他',
+                'INC6SC7': '公開比賽',
+                'INC7SC1': '兒童節目',
+                'INC7SC2': '讀者教育活動',
+                'INC7SC3': '展覽',
+                'INC7SC4': '閱讀活動',
+                'INC7SC5': '專題講座 / 工作坊',
+                'INC7SC6': '文學活動',
+                'INC7SC8': '其他',
+                'INC9SC1': '全港性節慶',
+                'INC9SC2': '定期免費娛樂節目',
+                'INC9SC3': '其他'
+            }
+        };
+
+        // 快取設定
+        const CACHE_CONFIG = {
+            enabled: true,
+            eventsKey: 'culture_events_cache',
+            venuesKey: 'culture_venues_cache',
+            timestampKey: 'culture_data_timestamp',
+            ttl: 30 * 60 * 1000 // 30分鐘快取時間
+        };
+
+        // 全局變量
+        let eventsData = new Map(); // 儲存節目資料，按場地 > cat1 > cat2 分組
+        let venuesData = new Map(); // 儲存場地資料
+        let filteredData = new Map(); // 儲存篩選後的資料
+        let venueSet = new Set();
+        let cat1Set = new Set();
+        let cat2Set = new Set();
+        
+        // 初始化應用
+        document.addEventListener('DOMContentLoaded', async function () {
+            // 更新最後更新時間
+            updateLastUpdatedTime();
+            
+            // 載入所有節目資料
+            await loadCultureData();
+            
+            // 初始化教程
+            if (!localStorage.getItem('cultureTutorialShown')) {
+                setTimeout(() => {
+                    showNotification("歡迎使用「文化節目」查詢系統！\n• 點擊場地標題可展開/收起主要類別\n• 點擊類別標題可展開/收起次要類別\n• 使用篩選功能快速查找特定節目\n• 資料每30分鐘自動更新", "info", 5000);
+                    localStorage.setItem('cultureTutorialShown', 'true');
+                }, 1000);
+            }
+        });
+
+        // 載入所有文化節目資料
+        async function loadCultureData() {
+            const container = document.getElementById('accordion-container');
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>正在載入文化節目資料...</p>
+                </div>
+            `;
+
+            try {
+                // 檢查快取
+                const cachedData = getCachedData();
+                let needsRefresh = false;
+                
+                if (cachedData && cachedData.events && cachedData.venues) {
+                    // 使用快取資料
+                    eventsData = new Map(Object.entries(cachedData.events));
+                    venuesData = new Map(Object.entries(cachedData.venues));
+                    venueSet = new Set(cachedData.venues || []);
+                    cat1Set = new Set(cachedData.cat1 || []);
+                    cat2Set = new Set(cachedData.cat2 || []);
+                    
+                    showNotification('已載入快取資料', 'info', 2000);
+                    needsRefresh = true; // 後台更新資料
+                } else {
+                    // 從API載入資料
+                    showNotification('正在從伺服器載入資料...', 'info');
+                }
+
+                // 取得原始資料
+                const [eventsXML, venuesXML] = await Promise.all([
+                    fetchXMLData(DATA_SOURCES.events, needsRefresh),
+                    fetchXMLData(DATA_SOURCES.venues, needsRefresh)
+                ]);
+
+                if (!eventsXML || !venuesXML) {
+                    throw new Error('無法取得資料來源');
+                }
+
+                // 解析XML資料
+                const events = parseEventsXML(eventsXML);
+                const venues = parseVenuesXML(venuesXML);
+
+                // 合併資料
+                const mergedData = mergeEventsAndVenues(events, venues);
+                
+                // 轉換類別代碼為顯示名稱
+                const processedData = transformCategoryCodes(mergedData);
+                
+                // 分組資料（按場地 > cat1 > cat2）
+                eventsData = groupByVenueCat1Cat2(processedData);
+                
+                // 收集篩選器選項
+                collectFilterOptions(processedData);
+                
+                // 更新快取
+                cacheData({
+                    events: Object.fromEntries(eventsData),
+                    venues: Object.fromEntries(venuesData),
+                    venuesList: Array.from(venueSet),
+                    cat1: Array.from(cat1Set),
+                    cat2: Array.from(cat2Set)
+                });
+
+                // 更新介面
+                updateFilterOptions();
+                filteredData = new Map(eventsData);
+                updateCultureList();
+                updateStatistics();
+                
+                showNotification(`成功載入 ${mergedData.length} 個文化節目`, 'success');
+                
+            } catch (error) {
+                console.error('載入文化節目資料時出錯:', error);
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>載入文化節目資料時出錯</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">${error.message}</p>
+                        <button onclick="loadCultureData()" style="margin-top: 15px; padding: 8px 16px; background: #D2691E; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            重試載入
+                        </button>
+                    </div>
+                `;
+                showNotification('載入文化節目資料時出錯，請稍後再試', 'error');
+            }
+        }
+
+        // 取得快取資料
+        function getCachedData() {
+            if (!CACHE_CONFIG.enabled) return null;
+            
+            const timestamp = localStorage.getItem(CACHE_CONFIG.timestampKey);
+            if (!timestamp) return null;
+            
+            const age = Date.now() - parseInt(timestamp);
+            if (age > CACHE_CONFIG.ttl) return null;
+            
+            try {
+                const events = JSON.parse(localStorage.getItem(CACHE_CONFIG.eventsKey) || '{}');
+                const venues = JSON.parse(localStorage.getItem(CACHE_CONFIG.venuesKey) || '{}');
+                const venuesList = JSON.parse(localStorage.getItem('culture_venues_list_cache') || '[]');
+                const cat1 = JSON.parse(localStorage.getItem('culture_cat1_cache') || '[]');
+                const cat2 = JSON.parse(localStorage.getItem('culture_cat2_cache') || '[]');
+                
+                return {
+                    events,
+                    venues,
+                    venues: venuesList,
+                    cat1,
+                    cat2
+                };
+            } catch (error) {
+                console.error('讀取快取資料時出錯:', error);
+                return null;
+            }
+        }
+
+        // 快取資料
+        function cacheData(data) {
+            if (!CACHE_CONFIG.enabled) return;
+            
+            try {
+                localStorage.setItem(CACHE_CONFIG.eventsKey, JSON.stringify(data.events));
+                localStorage.setItem(CACHE_CONFIG.venuesKey, JSON.stringify(data.venues));
+                localStorage.setItem(CACHE_CONFIG.timestampKey, Date.now().toString());
+                localStorage.setItem('culture_venues_list_cache', JSON.stringify(data.venuesList));
+                localStorage.setItem('culture_cat1_cache', JSON.stringify(data.cat1));
+                localStorage.setItem('culture_cat2_cache', JSON.stringify(data.cat2));
+            } catch (error) {
+                console.error('儲存快取資料時出錯:', error);
+            }
+        }
+
+        // 取得XML資料
+        async function fetchXMLData(url, useCache = false) {
+            try {
+                // 添加時間戳避免快取
+                const timestamp = useCache ? '' : `?t=${Date.now()}`;
+                const response = await fetch(`${PROXY_URL}/${url}${timestamp}`);
+
+                if (!response.ok) {
+                    if (!isTerminated) {
+                        isTerminated = true;
+                        alert(`請先啟用 PROXY： ${PROXY_URL}`);
+                        window.open(PROXY_URL, "_blank");
+                    }
+                    return;
+                }
+                
+                const text = await response.text();
+                return new DOMParser().parseFromString(text, 'text/xml');
+            } catch (error) {
+                console.error(`取得 ${url} 資料時出錯:`, error);
+                return null;
+            }
+        }
+
+        // 解析節目XML
+        function parseEventsXML(xmlDoc) {
+            const events = [];
+            const eventNodes = xmlDoc.querySelectorAll('event');
+            
+            eventNodes.forEach(eventNode => {
+                const id = eventNode.getAttribute('id');
+                const titlec = getTextContent(eventNode, 'titlec');
+                const cat1 = getTextContent(eventNode, 'cat1');
+                const cat2 = getTextContent(eventNode, 'cat2');
+                const predateC = getTextContent(eventNode, 'predateC');
+                const venueid = getTextContent(eventNode, 'venueid');
+                const presenterorgc = getTextContent(eventNode, 'presenterorgc');
+                const enquiry = getTextContent(eventNode, 'enquiry');
+                
+                events.push({
+                    id,
+                    titlec,
+                    cat1,
+                    cat2,
+                    predateC,
+                    venueid,
+                    presenterorgc,
+                    enquiry
+                });
+            });
+            
+            return events;
+        }
+
+        // 解析場地XML
+        function parseVenuesXML(xmlDoc) {
+            const venues = new Map();
+            const venueNodes = xmlDoc.querySelectorAll('venue');
+            
+            venueNodes.forEach(venueNode => {
+                const id = venueNode.getAttribute('id');
+                const venuec = getTextContent(venueNode, 'venuec');
+                
+                if (id && venuec) {
+                    venues.set(id, venuec);
+                }
+            });
+            
+            return venues;
+        }
+
+        // 取得文字內容（處理CDATA）
+        function getTextContent(node, tagName) {
+            const element = node.querySelector(tagName);
+            if (!element) return '';
+            
+            // 處理CDATA內容
+            const textContent = element.textContent || '';
+            // 清理多餘空格和換行
+            return textContent.trim().replace(/\s+/g, ' ');
+        }
+
+        // 合併節目和場地資料
+        function mergeEventsAndVenues(events, venues) {
+            return events.map(event => {
+                const venueName = venues.get(event.venueid) || '未知場地';
+                return {
+                    ...event,
+                    venueName,
+                    venueid: event.venueid || '未指定'
+                };
+            });
+        }
+
+        // 轉換類別代碼為顯示名稱
+        function transformCategoryCodes(events) {
+            return events.map(event => {
+                // 轉換 cat1 (轉大寫並映射)
+                let cat1Code = event.cat1?.toUpperCase()?.trim() || '';
+                let cat1Display = CATEGORY_MAPPING.cat1[cat1Code] || event.cat1 || '未分類';
+                
+                // 轉換 cat2 (轉大寫並映射)
+                let cat2Code = event.cat2?.toUpperCase()?.trim() || '';
+                let cat2Display = CATEGORY_MAPPING.cat2[cat2Code] || event.cat2 || '未分類';
+                
+                return {
+                    ...event,
+                    cat1Code: cat1Code,
+                    cat1Display: cat1Display,
+                    cat2Code: cat2Code,
+                    cat2Display: cat2Display
+                };
+            });
+        }
+
+        // 按場地 > cat1 > cat2 分組資料
+        function groupByVenueCat1Cat2(events) {
+            const grouped = new Map();
+            
+            events.forEach(event => {
+                const venueName = event.venueName || '未知場地';
+                const cat1Display = event.cat1Display || '未分類';
+                const cat2Display = event.cat2Display || '未分類';
+                
+                // 第一層：場地
+                if (!grouped.has(venueName)) {
+                    grouped.set(venueName, new Map());
+                }
+                
+                const venueGroup = grouped.get(venueName);
+                
+                // 第二層：cat1
+                if (!venueGroup.has(cat1Display)) {
+                    venueGroup.set(cat1Display, new Map());
+                }
+                
+                const cat1Group = venueGroup.get(cat1Display);
+                
+                // 第三層：cat2
+                if (!cat1Group.has(cat2Display)) {
+                    cat1Group.set(cat2Display, []);
+                }
+                
+                cat1Group.get(cat2Display).push(event);
+            });
+            
+            return grouped;
+        }
+
+        // 收集篩選器選項
+        function collectFilterOptions(events) {
+            events.forEach(event => {
+                if (event.venueName) venueSet.add(event.venueName);
+                if (event.cat1Display) cat1Set.add(event.cat1Display);
+                if (event.cat2Display) cat2Set.add(event.cat2Display);
+            });
+        }
+
+        // 更新篩選器選項
+        function updateFilterOptions() {
+            const venueSelect = document.getElementById('filter-venue');
+            const cat1Select = document.getElementById('filter-category1');
+            const cat2Select = document.getElementById('filter-category2');
+            
+            // 清空選項
+            venueSelect.innerHTML = '<option value="">全部場地</option>';
+            cat1Select.innerHTML = '<option value="">全部類別</option>';
+            cat2Select.innerHTML = '<option value="">全部類別</option>';
+            
+            // 添加場地選項
+            Array.from(venueSet).sort().forEach(venue => {
+                const option = document.createElement('option');
+                option.value = venue;
+                option.textContent = venue;
+                venueSelect.appendChild(option);
+            });
+            
+            // 添加主要類別選項
+            Array.from(cat1Set).sort().forEach(cat1 => {
+                const option = document.createElement('option');
+                option.value = cat1;
+                option.textContent = cat1;
+                cat1Select.appendChild(option);
+            });
+            
+            // 添加次要類別選項
+            Array.from(cat2Set).sort().forEach(cat2 => {
+                const option = document.createElement('option');
+                option.value = cat2;
+                option.textContent = cat2;
+                cat2Select.appendChild(option);
+            });
+        }
+
+        // 套用篩選
+        function applyFilters() {
+            const venueFilter = document.getElementById('filter-venue').value;
+            const cat1Filter = document.getElementById('filter-category1').value;
+            const cat2Filter = document.getElementById('filter-category2').value;
+            const searchFilter = document.getElementById('filter-search').value.toLowerCase();
+            
+            filteredData = new Map();
+            
+            // 篩選場地層級
+            eventsData.forEach((cat1Groups, venueName) => {
+                if (venueFilter && venueName !== venueFilter) return;
+                
+                const filteredVenueGroup = new Map();
+                
+                // 篩選cat1層級
+                cat1Groups.forEach((cat2Groups, cat1Display) => {
+                    if (cat1Filter && cat1Display !== cat1Filter) return;
+                    
+                    const filteredCat1Group = new Map();
+                    
+                    // 篩選cat2層級
+                    cat2Groups.forEach((events, cat2Display) => {
+                        if (cat2Filter && cat2Display !== cat2Filter) return;
+                        
+                        // 篩選具體事件
+                        const filteredEvents = events.filter(event => {
+                            // 關鍵字搜尋
+                            if (searchFilter) {
+                                const titleMatch = event.titlec?.toLowerCase().includes(searchFilter) || false;
+                                const dateMatch = event.predateC?.toLowerCase().includes(searchFilter) || false;
+                                const presenterMatch = event.presenterorgc?.toLowerCase().includes(searchFilter) || false;
+                                const enquiryMatch = event.enquiry?.toLowerCase().includes(searchFilter) || false;
+                                
+                                if (!titleMatch && !dateMatch && !presenterMatch && !enquiryMatch) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        });
+                        
+                        if (filteredEvents.length > 0) {
+                            filteredCat1Group.set(cat2Display, filteredEvents);
+                        }
+                    });
+                    
+                    if (filteredCat1Group.size > 0) {
+                        filteredVenueGroup.set(cat1Display, filteredCat1Group);
+                    }
+                });
+                
+                if (filteredVenueGroup.size > 0) {
+                    filteredData.set(venueName, filteredVenueGroup);
+                }
+            });
+            
+            updateCultureList();
+            updateStatistics();
+            
+            // 計算總節目數
+            let totalEvents = 0;
+            filteredData.forEach(cat1Groups => {
+                cat1Groups.forEach(cat2Groups => {
+                    cat2Groups.forEach(events => {
+                        totalEvents += events.length;
+                    });
+                });
+            });
+            
+            showNotification(`找到 ${totalEvents} 個符合條件的節目`, 'success');
+        }
+
+        // 重設篩選
+        function resetFilters() {
+            document.getElementById('filter-venue').value = '';
+            document.getElementById('filter-category1').value = '';
+            document.getElementById('filter-category2').value = '';
+            document.getElementById('filter-search').value = '';
+            
+            filteredData = new Map(eventsData);
+            updateCultureList();
+            updateStatistics();
+            
+            showNotification('篩選條件已重設', 'info');
+        }
+
+        // 更新節目列表
+        function updateCultureList() {
+            const container = document.getElementById('accordion-container');
+            
+            if (filteredData.size === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>沒有找到符合條件的文化節目</p>
+                        <button onclick="resetFilters()" style="margin-top: 15px; padding: 8px 16px; background: #D2691E; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            顯示所有節目
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let accordionHTML = '';
+            let venueIndex = 0;
+            
+            // 將場地Map轉換為陣列並按名稱排序
+            const sortedVenues = Array.from(filteredData.keys()).sort();
+            
+            sortedVenues.forEach(venueName => {
+                const cat1Groups = filteredData.get(venueName);
+                let venueEventCount = 0;
+                
+                // 計算此場地的總節目數
+                cat1Groups.forEach(cat2Groups => {
+                    cat2Groups.forEach(events => {
+                        venueEventCount += events.length;
+                    });
+                });
+                
+                accordionHTML += `
+                    <div class="dataset-group" data-venue="${venueName}">
+                        <div class="dataset-header" onclick="toggleVenueGroup(${venueIndex})">
+                            <div>
+                                <i class="fas fa-map-marker-alt" style="margin-right: 8px;"></i>
+                                <span>${venueName}</span>
+                                <span style="font-size: 0.8em; margin-left: 10px; opacity: 0.8;">
+                                    (${venueEventCount} 個節目)
+                                </span>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="venue-group-${venueIndex}" class="dataset-content" style="display: none;">
+                `;
+                
+                let cat1Index = 0;
+                const sortedCat1 = Array.from(cat1Groups.keys()).sort();
+                
+                sortedCat1.forEach(cat1Display => {
+                    const cat2Groups = cat1Groups.get(cat1Display);
+                    let cat1EventCount = 0;
+                    
+                    // 計算此主要類別的總節目數
+                    cat2Groups.forEach(events => {
+                        cat1EventCount += events.length;
+                    });
+                    
+                    accordionHTML += `
+                        <div class="sub-dataset-group" data-cat1="${cat1Display}">
+                            <div class="sub-dataset-header" onclick="toggleCat1Group(${venueIndex}, ${cat1Index})">
+                                <div>
+                                    <i class="fas fa-tag" style="margin-right: 8px;"></i>
+                                    <span>${cat1Display}</span>
+                                    <span style="font-size: 0.8em; margin-left: 10px; opacity: 0.8;">
+                                        (${cat1EventCount} 個節目)
+                                    </span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div id="cat1-group-${venueIndex}-${cat1Index}" class="sub-dataset-content" style="display: none;">
+                    `;
+                    
+                    let cat2Index = 0;
+                    const sortedCat2 = Array.from(cat2Groups.keys()).sort();
+                    
+                    sortedCat2.forEach(cat2Display => {
+                        const events = cat2Groups.get(cat2Display);
+                        
+                        accordionHTML += `
+                            <div class="sub-sub-dataset-group" data-cat2="${cat2Display}">
+                                <div class="sub-sub-dataset-header" onclick="toggleCat2Group(${venueIndex}, ${cat1Index}, ${cat2Index})">
+                                    <div>
+                                        <i class="fas fa-tags" style="margin-right: 8px;"></i>
+                                        <span>${cat2Display}</span>
+                                        <span style="font-size: 0.8em; margin-left: 10px; opacity: 0.8;">
+                                            (${events.length} 個節目)
+                                        </span>
+                                    </div>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div id="cat2-group-${venueIndex}-${cat1Index}-${cat2Index}" class="property-list" style="display: none;">
+                        `;
+                        
+                        // 顯示此類別下的所有節目
+                        events.forEach((event, eventIndex) => {
+                            accordionHTML += `
+                                <div class="property-item">
+                                    <div class="property-meta" style="margin-bottom: 15px;">
+                                        <span class="property-badge badge-event">
+                                            <i class="fas fa-calendar-alt" style="margin-right: 4px;"></i>
+                                            節目 ${eventIndex + 1}
+                                        </span>
+                                        ${event.presenterorgc ? `
+                                            <span class="property-badge badge-venue">
+                                                <i class="fas fa-building" style="margin-right: 4px;"></i>
+                                                ${event.presenterorgc}
+                                            </span>
+                                        ` : ''}
+                                        ${event.enquiry ? `
+                                            <span class="property-badge badge-cat1">
+                                                <i class="fas fa-phone" style="margin-right: 4px;"></i>
+                                                查詢: ${event.enquiry}
+                                            </span>
+                                        ` : ''}
+                                        ${event.predateC ? `
+                                            <span class="property-badge badge-date">
+                                                <i class="fas fa-clock" style="margin-right: 4px;"></i>
+                                                ${event.predateC.substring(0, 20)}${event.predateC.length > 20 ? '...' : ''}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                    <div class="property-info">
+                                        <div>
+                                            <div class="property-row">
+                                                <div class="property-label">節目名稱:</div>
+                                                <div class="property-value">${event.titlec || '未命名節目'}</div>
+                                            </div>
+                                            <div class="property-row">
+                                                <div class="property-label">主要類別:</div>
+                                                <div class="property-value">${event.cat1Display}</div>
+                                            </div>
+                                            <div class="property-row">
+                                                <div class="property-label">次要類別:</div>
+                                                <div class="property-value">${event.cat2Display}</div>
+                                            </div>
+                                            <div class="property-row">
+                                                <div class="property-label">類別代碼:</div>
+                                                <div class="property-value">${event.cat1Code} / ${event.cat2Code}</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="property-row">
+                                                <div class="property-label">場地名稱:</div>
+                                                <div class="property-value">${event.venueName}</div>
+                                            </div>
+                                            <div class="property-row">
+                                                <div class="property-label">場地編號:</div>
+                                                <div class="property-value">${event.venueid}</div>
+                                            </div>
+                                            <div class="property-row">
+                                                <div class="property-label">節目日期:</div>
+                                                <div class="property-value">${event.predateC || '日期未定'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        accordionHTML += `
+                                </div>
+                            </div>
+                        `;
+                        cat2Index++;
+                    });
+                    
+                    accordionHTML += `
+                            </div>
+                        </div>
+                    `;
+                    cat1Index++;
+                });
+                
+                accordionHTML += `
+                        </div>
+                    </div>
+                `;
+                venueIndex++;
+            });
+            
+            container.innerHTML = accordionHTML;
+        }
+
+        // 切換場地群組
+        function toggleVenueGroup(index) {
+            const content = document.getElementById(`venue-group-${index}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                header.classList.add('active');
+                icon.className = 'fas fa-chevron-up';
+                // 滾動到該群組
+                content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                content.style.display = 'none';
+                header.classList.remove('active');
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        // 切換主要類別群組
+        function toggleCat1Group(venueIndex, cat1Index) {
+            const content = document.getElementById(`cat1-group-${venueIndex}-${cat1Index}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                header.classList.add('active');
+                icon.className = 'fas fa-chevron-up';
+                // 滾動到該群組
+                content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                content.style.display = 'none';
+                header.classList.remove('active');
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        // 切換次要類別群組
+        function toggleCat2Group(venueIndex, cat1Index, cat2Index) {
+            const content = document.getElementById(`cat2-group-${venueIndex}-${cat1Index}-${cat2Index}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                header.classList.add('active');
+                icon.className = 'fas fa-chevron-up';
+                // 滾動到該群組
+                content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                content.style.display = 'none';
+                header.classList.remove('active');
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        // 更新統計數據
+        function updateStatistics() {
+            let totalEvents = 0;
+            const venuesSet = new Set();
+            const cat1Set = new Set();
+            const cat2Set = new Set();
+            
+            filteredData.forEach((cat1Groups, venueName) => {
+                venuesSet.add(venueName);
+                
+                cat1Groups.forEach((cat2Groups, cat1Display) => {
+                    cat1Set.add(cat1Display);
+                    
+                    cat2Groups.forEach((events, cat2Display) => {
+                        cat2Set.add(cat2Display);
+                        totalEvents += events.length;
+                    });
+                });
+            });
+            
+            document.getElementById('total-events').textContent = totalEvents;
+            document.getElementById('total-venues').textContent = venuesSet.size;
+            document.getElementById('total-categories1').textContent = cat1Set.size;
+            document.getElementById('total-categories2').textContent = cat2Set.size;
+        }
+
+        // 更新最後更新時間
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('zh-HK', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('last-updated').textContent = formattedTime;
+            
+            // 每分鐘更新一次時間
+            setTimeout(updateLastUpdatedTime, 60000);
+        }
+
+        // 顯示通知
+        function showNotification(message, type = 'info', duration = 3000) {
+            // 移除現有通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // 創建通知元素
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            // 添加到文檔
+            document.body.appendChild(notification);
+            
+            // 自動移除
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, duration);
+        }
+
+        // 重新載入資料
+        function reloadData() {
+            // 清除快取
+            localStorage.removeItem(CACHE_CONFIG.eventsKey);
+            localStorage.removeItem(CACHE_CONFIG.venuesKey);
+            localStorage.removeItem(CACHE_CONFIG.timestampKey);
+            
+            // 重新載入資料
+            loadCultureData();
+            showNotification('重新載入資料中...', 'info');
+        }
+    </script>
+</body>
+</html>
