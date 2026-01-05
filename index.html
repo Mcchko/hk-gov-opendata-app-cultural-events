@@ -733,14 +733,11 @@
                 container.innerHTML = `
                     <div class="no-data">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>載入文化節目資料時出錯</p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">${error.message}</p>
-                        <button onclick="loadCultureData()" style="margin-top: 15px; padding: 8px 16px; background: #D2691E; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                            重試載入
-                        </button>
+                        <p>請先訪問 <a href="${PROXY_URL}" target="_blank">${PROXY_URL}</a></p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">點擊「Request temporary access to the demo server」按鈕啟用代理伺服器</p>
                     </div>
                 `;
-                showNotification('載入文化節目資料時出錯，請稍後再試', 'error');
+                showNotification('請啟用 CORS Anywhere 代理伺服器', 'error');
             }
         }
 
@@ -792,6 +789,7 @@
 
         // 取得XML資料
         async function fetchXMLData(url, useCache = false) {
+            const container = document.getElementById('accordion-container');
             try {
                 // 添加時間戳避免快取
                 const timestamp = useCache ? '' : `?t=${Date.now()}`;
@@ -800,8 +798,14 @@
                 if (!response.ok) {
                     if (!isTerminated) {
                         isTerminated = true;
-                        alert(`請先啟用 PROXY： ${PROXY_URL}`);
-                        window.open(PROXY_URL, "_blank");
+                        container.innerHTML = `
+                            <div class="no-data">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>請先訪問 <a href="${PROXY_URL}" target="_blank">${PROXY_URL}</a></p>
+                                <p style="font-size: 0.9rem; margin-top: 10px;">點擊「Request temporary access to the demo server」按鈕啟用代理伺服器</p>
+                            </div>
+                        `;
+                        showNotification('請啟用 CORS Anywhere 代理伺服器', 'error');
                     }
                     return;
                 }
